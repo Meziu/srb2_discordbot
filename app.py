@@ -19,20 +19,24 @@ async def on_message(message):
         # don't do anything
         return
     
-    # if the message starts with "!hello"
+    # if the message starts with "race!"
     if message.content.startswith('race!'):
-        # create a message that mentions the message sender
+        # receive the message and split it to get the command and arguments
         received_cmd = message.content.split('race!')[1].split(" ")
         cmd = received_cmd[0]
         args = received_cmd[1::1]
         
         msg = None
         
+        # if the given command is a valid command
         for t in cmd_list.keys():
             if cmd == t:
+                # set the message to the result of its function
                 msg = cmd_list[t]()
 
+        # if a message has been set
         if msg:
+            # send the message
             await message.channel.send("```"+msg+"```")
                 
 # run
