@@ -6,6 +6,18 @@ api_url = "https://srb2circuit.eu/highscores/api/"
 def markup(txt):
     return "```"+txt+"```"
 
+def filter_dict_list(dict_list, allowed_keys):
+    res = []
+    
+    for dictionary in dict_list:
+        temp = []
+        for key in allowed_keys:
+            temp.append(dictionary[key])
+        res.append(temp)
+    
+    return res
+        
+
 def get_leaderboard():
     # request the json for the leaderboard
     leaderboard = r.get(api_url+"leaderboard", verify=False).json()
@@ -21,16 +33,7 @@ def get_status():
     # request the json for the server status
     status = r.get(api_url+"server_info", verify=False).json()
     
-    players_list = []
-    
-    for player in status['players']:
-        temp = []
-        
-        temp.append(player['num'])
-        temp.append(player['name'])
-        temp.append(player['skin'])
-        
-        players_list.append(temp)
+    players_list = filter_dict_list(status['players'], ['num', 'name', 'skin'])
 
     players_str = tabulate(players_list, headers=["ID", "Username", "Skin"])
     
@@ -40,5 +43,26 @@ def get_status():
            f"Level Time: {status['leveltime_string']}\n\n"
            f"Players: \n{players_str}"
     )
+
+    return markup(res)
+
+def get_search_result(map, skin=None, player=None):
+    if not map:
+        return markup("No map was found. Retry by specifying a map.")
+    
+    search_url = api_url + f"search?limit=3&mapname={map}"
+    
+    if skin:
+        search_url += f"&skin={skin}"
+    if player:
+        search_url += f"&username={player}"
+    
+    search_result = r.get(search_url, verify=False).json()
+
+    search_list = filter_dict_list(search_result, ['username', 'skin', 'time_string', 'datetime'])
+
+    search_str = tabulate(search_list, headers=["Player", "Skin", "Time", "Datetime"])
+    
+    res = 'Search Results:\n\n'+search_str
 
     return markup(res)

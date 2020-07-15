@@ -20,7 +20,11 @@ async def leaderboard(ctx):
 @bot.command()
 async def status(ctx):
     await ctx.send(con.get_status())
- 
+
+@bot.command()
+async def search(ctx, map=None, skin=None, player=None):
+    await ctx.send(con.get_search_result(map, skin, player))
+
 # run
 if __name__== "__main__":
     # connect the client to the bot
