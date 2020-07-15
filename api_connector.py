@@ -3,12 +3,6 @@ from tabulate import tabulate
 
 api_url = "https://srb2circuit.eu/highscores/api/"
 
-def tics_to_string(time):
-    minutes = round(time/(60*35))
-    seconds = round(time/35%60)
-    centiseconds = round((time%35) * (100/35))
-    return f"{minutes}:{seconds}.{centiseconds}"
-
 def markup(txt):
     return "```"+txt+"```"
 
@@ -27,8 +21,6 @@ def get_status():
     # request the json for the server status
     status = r.get(api_url+"server_info", verify=False).json()
     
-    time_str = tics_to_string(status['leveltime'])
-    
     players_list = []
     
     for player in status['players']:
@@ -45,7 +37,7 @@ def get_status():
     res = (f"Server: {status['servername']}\n\n" 
            f"Number of Players: {status['number_of_players']}/{status['max_players']}\n"
            f"Map: {status['map']['name']} (id = {status['map']['id']})\n"
-           f"Level Time: {time_str}\n\n"
+           f"Level Time: {status['leveltime_string']}\n\n"
            f"Players: \n{players_str}"
     )
 
