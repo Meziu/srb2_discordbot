@@ -1,6 +1,7 @@
 import requests as r
 from tabulate import tabulate
 
+# base api url
 api_url = "https://srb2circuit.eu/highscores/api/"
 
 def markup(txt):
@@ -17,7 +18,7 @@ def filter_dict_list(dict_list, allowed_keys):
     
     return res
         
-
+# leaderboard api retriever
 def get_leaderboard():
     # request the json for the leaderboard
     leaderboard = r.get(api_url+"leaderboard", verify=False).json()
@@ -29,14 +30,18 @@ def get_leaderboard():
     # create the table and return it
     return markup(tabulate(leaderboard.items(), headers=["Player", "Points"])[:str_length])
 
+# status api retriever
 def get_status():
     # request the json for the server status
     status = r.get(api_url+"server_info", verify=False).json()
     
+    # filter the player fdate to get only the wanted columns
     players_list = filter_dict_list(status['players'], ['num', 'name', 'skin'])
 
+    # create an ascii table with the players data
     players_str = tabulate(players_list, headers=["ID", "Username", "Skin"])
     
+    # create the message
     res = (f"Server: {status['servername']}\n\n" 
            f"Number of Players: {status['number_of_players']}/{status['max_players']}\n"
            f"Map: {status['map']['name']} (id = {status['map']['id']})\n"
@@ -44,12 +49,17 @@ def get_status():
            f"Players: \n{players_str}"
     )
 
+    # return the message
     return markup(res)
 
+# search api retriever
 def get_search_result(map, skin=None, player=None):
+    # if no map was specified
     if not map:
+        # give error message
         return markup("No map was found. Retry by specifying a map.")
     
+    # search api url builder
     search_url = api_url + f"search?limit=3&mapname={map}"
     
     if skin:
@@ -57,12 +67,17 @@ def get_search_result(map, skin=None, player=None):
     if player:
         search_url += f"&username={player}"
     
+    # get the search results
     search_result = r.get(search_url, verify=False).json()
 
+    # filter the search results to get only the wanted columns
     search_list = filter_dict_list(search_result, ['username', 'skin', 'time_string', 'datetime'])
 
+    # create an ascii table with the data
     search_str = tabulate(search_list, headers=["Player", "Skin", "Time", "Datetime"])
     
+    # create the message
     res = 'Search Results:\n\n'+search_str
 
+    # return the message
     return markup(res)
