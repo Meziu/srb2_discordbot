@@ -77,7 +77,9 @@ def get_search_result(map, skin=None, player=None):
     search_str = tabulate(search_list, headers=["Player", "Skin", "Time", "Datetime"])
     
     # create the message
-    res = 'Search Results:\n\n'+search_str
+    res = (f'Found Map: {search_result[0]["mapname"]}  (id = {search_result[0]["map_id"]})\n\n'
+           'Search Results:\n'+search_str
+    )
 
     # return the message
     return markup(res)
