@@ -48,7 +48,7 @@ async def help(ctx):
     # set the commands with descriptions
     embed.add_field(name="status", value="Returns the server status", inline=False)
     embed.add_field(name="leaderboard", value="Returns the player leaderboard", inline=False)
-    embed.add_field(name="search", value=('Usage: <command_prefix>search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
+    embed.add_field(name="search", value=('Usage: !search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
     
     # get the command sender

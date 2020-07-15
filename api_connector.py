@@ -71,15 +71,13 @@ def get_search_result(map, skin=None, player=None):
     search_result = r.get(search_url, verify=False).json()
 
     # filter the search results to get only the wanted columns
-    search_list = filter_dict_list(search_result, ['username', 'skin', 'time_string', 'datetime'])
+    search_list = filter_dict_list(search_result, ['username', 'skin', 'time_string'])
 
     # create an ascii table with the data
-    search_str = tabulate(search_list, headers=["Player", "Skin", "Time", "Datetime"])
+    search_str = tabulate(search_list, headers=["Player", "Skin", "Time"])
     
     # create the message
-    res = (f'Found Map: {search_result[0]["mapname"]}  (id = {search_result[0]["map_id"]})\n\n'
-           'Search Results:\n'+search_str
-    )
+    res = f'Map: {search_result[0]["mapname"]}  (id = {search_result[0]["map_id"]})\n\n'+search_str
 
     # return the message
     return markup(res)
