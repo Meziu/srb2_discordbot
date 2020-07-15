@@ -81,3 +81,8 @@ def get_search_result(map, skin=None, player=None):
 
     # return the message
     return markup(res)
+
+def get_best_skins():
+    best_skins = r.get(api_url+"bestskins", verify=False).json()
+    
+    return markup(tabulate(best_skins.items(), headers=["Skin", "Points"]))

@@ -1,17 +1,18 @@
-from discord import Embed, Colour
+from discord import Embed, Colour, Game
 from discord.ext import commands
 import api_connector as con
 from credentials import TOKEN
 
 # initialize a Client instance
-bot = commands.Bot(command_prefix="!")
-bot.remove_command('help')
+bot = commands.Bot(command_prefix="!", help_command=None)
 
 # when the bot starts running
 @bot.event
 async def on_ready():
     # print the bot's username
     print('Logged in as '+ bot.user.name)
+    
+    await bot.change_presence(activity=Game("srb2circuit.eu"))
 
 # race!leaderboard command received
 @bot.command()
@@ -28,6 +29,11 @@ async def status(ctx):
 async def search(ctx, map=None, skin=None, player=None):
     await ctx.send(con.get_search_result(map, skin, player))
 
+# race!bestskins command received
+@bot.command()
+async def bestskins(ctx):
+    await ctx.send(con.get_best_skins())
+
 # race!help command received
 @bot.command()
 async def help(ctx):
@@ -35,12 +41,15 @@ async def help(ctx):
     embed = Embed(colour=Colour.orange())
     
     # set the title
-    embed.set_author(name="Help")
+    embed.set_author(name="SRB2 Circuit Race - Help")
+    
+    embed.add_field(name="Command Prefix", value=bot.command_prefix)
     
     # set the commands with descriptions
-    embed.add_field(name="race!status", value="Returns the server status", inline=False)
-    embed.add_field(name="race!leaderboard", value="Returns the player leaderboard", inline=False)
-    embed.add_field(name="race!search", value=('Usage: race!search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
+    embed.add_field(name="status", value="Returns the server status", inline=False)
+    embed.add_field(name="leaderboard", value="Returns the player leaderboard", inline=False)
+    embed.add_field(name="search", value=('Usage: <command_prefix>search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
+    embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
     
     # get the command sender
     member = ctx.message.author
