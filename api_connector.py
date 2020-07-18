@@ -30,16 +30,24 @@ def get_leaderboard():
     # create the table and return it
     return markup(tabulate(leaderboard.items(), headers=["Player", "Points"])[:str_length])
 
-# status api retriever
-def get_status():
+def get_server_info():
     # request the json for the server status
     status = r.get(api_url+"server_info", verify=False).json()
     
     # filter the player fdate to get only the wanted columns
-    players_list = filter_dict_list(status['players'], ['num', 'name', 'skin'])
+    players_list = filter_dict_list(status['players'], ['name', 'skin'])
+    
+    return status, players_list
 
+# status api converter in text
+def get_status_message():
+    server_info = get_server_info()
+    
+    status = server_info[0]
+    players_list = server_info[1]
+    
     # create an ascii table with the players data
-    players_str = tabulate(players_list, headers=["ID", "Username", "Skin"])
+    players_str = tabulate(players_list, headers=["Username", "Skin"])
     
     # create the message
     res = (f"Server: {status['servername']}\n\n" 

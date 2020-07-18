@@ -1,41 +1,66 @@
 from discord import Embed, Colour, Game
-from discord.ext import commands
+from discord.ext import commands, tasks
 import api_connector as con
 from credentials import TOKEN
+from itertools import cycle
 
 # initialize a Client instance
 bot = commands.Bot(command_prefix="!", help_command=None)
+
+# setup the various status to loop through
+activities = cycle(["srb2circuit.eu", "_current_map_", "_current_online_players_"])
 
 # when the bot starts running
 @bot.event
 async def on_ready():
     # print the bot's username
     print('Logged in as '+ bot.user.name)
-    
-    await bot.change_presence(activity=Game("srb2circuit.eu"))
 
-# race!leaderboard command received
+    status_changer.start()
+
+
+@tasks.loop(seconds=15, count=None)
+async def status_changer():
+    # get the next status
+    item = next(activities)
+    
+    # if the item isn't the "current played map"
+    if item == "_current_map_":
+        # get the current map
+        game_name = con.get_server_info()[0]['map']['name']
+    elif item == "_current_online_players_":
+        # get the number of players
+        players = con.get_server_info()[0]['number_of_players']
+        
+        game_name = f"with {players} racers"
+    else:
+        game_name = item
+    # change the status
+    await bot.change_presence(activity=Game(name=game_name))
+        
+
+# leaderboard command received
 @bot.command()
 async def leaderboard(ctx):
     await ctx.send(con.get_leaderboard())
     
-# race!status command received
-@bot.command()
+# status command received
+@bot.command(aliases=["server", "serverstatus", "info"])
 async def status(ctx):
-    await ctx.send(con.get_status())
+    await ctx.send(con.get_status_message())
 
-# race!search command received
+# search command received
 @bot.command()
 async def search(ctx, map=None, skin=None, player=None):
     await ctx.send(con.get_search_result(map, skin, player))
 
-# race!bestskins command received
+# bestskins command received
 @bot.command()
 async def bestskins(ctx):
     await ctx.send(con.get_best_skins())
 
-# race!help command received
-@bot.command()
+# help command received
+@bot.command(aliases=["h"])
 async def help(ctx):
     # create an embed message
     embed = Embed(colour=Colour.orange())
@@ -46,7 +71,8 @@ async def help(ctx):
     embed.add_field(name="Command Prefix", value=bot.command_prefix)
     
     # set the commands with descriptions
-    embed.add_field(name="status", value="Returns the server status", inline=False)
+    embed.add_field(name="help (alias: h)", value="Returns this message")
+    embed.add_field(name="status (alias: server, serverstatus, info)", value="Returns the server status", inline=False)
     embed.add_field(name="leaderboard", value="Returns the player leaderboard", inline=False)
     embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
