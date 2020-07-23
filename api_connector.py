@@ -41,10 +41,7 @@ def get_server_info():
 
 # status api converter in text
 def get_status_message():
-    server_info = get_server_info()
-    
-    status = server_info[0]
-    players_list = server_info[1]
+    status, players_list = get_server_info()
     
     # create an ascii table with the players data
     players_str = tabulate(players_list, headers=["Username", "Skin"])

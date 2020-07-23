@@ -40,7 +40,7 @@ async def status_changer():
         
 
 # leaderboard command received
-@bot.command()
+@bot.command(aliases=["scoreboard"])
 async def leaderboard(ctx):
     await ctx.send(con.get_leaderboard())
     
@@ -73,7 +73,7 @@ async def help(ctx):
     # set the commands with descriptions
     embed.add_field(name="help (alias: h)", value="Returns this message")
     embed.add_field(name="status (alias: server, serverstatus, info)", value="Returns the server status", inline=False)
-    embed.add_field(name="leaderboard", value="Returns the player leaderboard", inline=False)
+    embed.add_field(name="leaderboard (alias: scoreboard)", value="Returns the player leaderboard", inline=False)
     embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
     
