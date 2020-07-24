@@ -3,12 +3,13 @@ from discord.ext import commands, tasks
 import api_connector as con
 from credentials import TOKEN
 from itertools import cycle
+from datetime import datetime
 
 # initialize a Client instance
 bot = commands.Bot(command_prefix="!", help_command=None)
 
 # setup the various status to loop through
-activities = cycle(["srb2circuit.eu", "_current_map_", "_current_online_players_"])
+activities = cycle(["srb2circuit.eu", "_current_map_", "_modded_friday_", "_current_online_players_"])
 
 # when the bot starts running
 @bot.event
@@ -22,6 +23,12 @@ async def on_ready():
 @tasks.loop(seconds=15, count=None)
 async def status_changer():
     # get the next status
+    game_name = activities_picker()
+    
+    # change the status
+    await bot.change_presence(activity=Game(name=game_name))
+        
+def activities_picker():
     item = next(activities)
     
     # if the item isn't the "current played map"
@@ -33,11 +40,17 @@ async def status_changer():
         players = con.get_server_info()[0]['number_of_players']
         
         game_name = f"with {players} racers"
+    elif item == "_modded_friday_":
+        # if today it's friday
+        if datetime.today().weekday() == 4:
+            game_name = "with modded skins"
+        else:
+            game_name = activities_picker()
     else:
         game_name = item
-    # change the status
-    await bot.change_presence(activity=Game(name=game_name))
-        
+    
+    return game_name
+
 
 # leaderboard command received
 @bot.command(aliases=["scoreboard"])
