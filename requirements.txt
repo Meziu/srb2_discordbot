@@ -2,4 +2,3 @@ discord
 tabulate
 requests
 matplotlib
-numpy

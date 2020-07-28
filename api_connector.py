@@ -131,7 +131,6 @@ def graph_builder(player, map, skin, limit):
 
     plt.xticks(xlocs, labels=["" for i in search_result])
     
-    ylocs, ylabels = plt.yticks()
     plt.yticks([i['time'] for i in search_result], labels=[i['time_string'] for i in search_result])
     
     fig.canvas.draw()
