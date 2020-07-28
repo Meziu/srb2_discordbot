@@ -1,7 +1,6 @@
 import requests as r
 from tabulate import tabulate
 import matplotlib.pyplot as plt
-import numpy as np
 from PIL import Image
 
 # base api url
