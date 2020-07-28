@@ -60,7 +60,7 @@ def get_status_message():
     return markup(res)
 
 # search api retriever
-def get_search_result(map=None, skin=None, player=None, limit=3, all_scores="off"):    
+def get_search_result(map=None, skin=None, player=None, limit=3, all_scores=False, datetime_order=False):    
     # search api url builder
     search_url = api_url + f"search?limit={limit}"
     
@@ -70,8 +70,10 @@ def get_search_result(map=None, skin=None, player=None, limit=3, all_scores="off
         search_url += f"&skin={skin}"
     if player:
         search_url += f"&username={player}"
-    if all_scores == "on":
-        search_url += f"&all_scores=on"
+    if all_scores:
+        search_url += "&all_scores=on"
+    if datetime_order:
+        search_url += "&order=datetime"
     
     # get the search results
     search_result = r.get(search_url, verify=False).json()
@@ -103,7 +105,7 @@ def graph_builder(player, map, skin, limit):
     NO_RESULTS_FOUND = 50
     
     limit = min([limit, 50])
-    search_result = get_search_result(player=player, map=map, skin=skin, limit=limit, all_scores="on")
+    search_result = get_search_result(player=player, map=map, skin=skin, limit=limit, all_scores=True, datetime_order=True)
     
     for i in search_result:
         if not i["datetime"]:
