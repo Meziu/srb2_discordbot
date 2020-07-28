@@ -1,5 +1,8 @@
 import requests as r
 from tabulate import tabulate
+import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
 
 # base api url
 api_url = "https://srb2circuit.eu/highscores/api/"
@@ -58,32 +61,37 @@ def get_status_message():
     return markup(res)
 
 # search api retriever
-def get_search_result(map, skin=None, player=None):
-    # if no map was specified
-    if not map:
-        # give error message
-        return markup("No map was found. Retry by specifying a map.")
-    
+def get_search_result(map=None, skin=None, player=None, limit=3, all_scores="off"):    
     # search api url builder
-    search_url = api_url + f"search?limit=3&mapname={map}"
+    search_url = api_url + f"search?limit={limit}"
     
+    if map:
+        search_url += f"&mapname={map}"
     if skin:
         search_url += f"&skin={skin}"
     if player:
         search_url += f"&username={player}"
+    if all_scores == "on":
+        search_url += f"&all_scores=on"
     
     # get the search results
     search_result = r.get(search_url, verify=False).json()
+    
+    return search_result
 
+def search_result_to_message(search_result):
     # filter the search results to get only the wanted columns
     search_list = filter_dict_list(search_result, ['username', 'skin', 'time_string'])
 
     # create an ascii table with the data
     search_str = tabulate(search_list, headers=["Player", "Skin", "Time"])
     
-    # create the message
-    res = f'Map: {search_result[0]["mapname"]}  (id = {search_result[0]["map_id"]})\n\n'+search_str
-
+    try:
+        # create the message
+        res = f'Map: {search_result[0]["mapname"]}  (id = {search_result[0]["map_id"]})\n\n'+search_str
+    except IndexError:
+        return markup("No result was found, try by rearranging the search parameters in the correct order or by specifying more the names.")
+    
     # return the message
     return markup(res)
 
@@ -91,3 +99,42 @@ def get_best_skins():
     best_skins = r.get(api_url+"bestskins", verify=False).json()
     
     return markup(tabulate(best_skins.items(), headers=["Skin", "Points"]))
+
+def graph_builder(player, map, skin, limit):
+    NO_RESULTS_FOUND = 50
+    
+    limit = min([limit, 50])
+    search_result = get_search_result(player=player, map=map, skin=skin, limit=limit, all_scores="on")
+    
+    for i in search_result:
+        if not i["datetime"]:
+            search_result.remove(i)
+    
+    if len(search_result) == 0:
+        return NO_RESULTS_FOUND
+    
+    title = f"Player: {search_result[0]['username']}, Map: {search_result[0]['mapname']}, Limit: {limit}"
+    if skin:
+       title += f", Skin: {search_result[0]['skin']}"
+    
+    fig = plt.figure()
+    
+    plt.plot_date(x=[i["datetime"] for i in search_result], y=[i["time"] for i in search_result], linestyle='-')
+    
+    plt.title(title)
+    plt.ylabel("Time Score")
+    plt.xlabel("Timestamp")
+    plt.grid(True)
+    
+    res_len = len(search_result)
+    
+    xlocs, xlabels = plt.xticks()
+
+    plt.xticks(xlocs, labels=["" for i in search_result])
+    
+    ylocs, ylabels = plt.yticks()
+    plt.yticks([i['time'] for i in search_result], labels=[i['time_string'] for i in search_result])
+    
+    fig.canvas.draw()
+    
+    return fig

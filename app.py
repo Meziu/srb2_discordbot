@@ -1,9 +1,10 @@
-from discord import Embed, Colour, Game
+from discord import Embed, Colour, Game, File
 from discord.ext import commands, tasks
 import api_connector as con
 from credentials import TOKEN
 from itertools import cycle
 from datetime import datetime
+from io import BytesIO
 
 # initialize a Client instance
 bot = commands.Bot(command_prefix="!", help_command=None)
@@ -65,12 +66,41 @@ async def status(ctx):
 # search command received
 @bot.command()
 async def search(ctx, map=None, skin=None, player=None):
-    await ctx.send(con.get_search_result(map, skin, player))
+    # if no map was specified
+    if not map:
+        # give error message
+        await ctx.send(con.markup("No map was found. Retry by specifying a map."))
+    else:
+        await ctx.send(con.search_result_to_message(con.get_search_result(map, skin, player)))
 
 # bestskins command received
 @bot.command()
 async def bestskins(ctx):
     await ctx.send(con.get_best_skins())
+
+# graph command received
+@bot.command()
+async def graph(ctx, player=None, map=None, score_limit=20, skin=None):
+    if player and map:
+        # get the PIL image of the graph
+        graph_figure = con.graph_builder(player=player, map=map, limit=score_limit, skin=skin)
+
+        if graph_figure == 50:
+            await ctx.send(con.markup("Zero results with datetime not null found"))
+        
+        # setup the buffer
+        output_buffer = BytesIO()
+    
+        # save the image as binary
+        graph_figure.savefig(output_buffer, format="png")
+    
+        # set the offset
+        output_buffer.seek(0)
+
+        # send the image
+        await ctx.send(file=File(fp=output_buffer, filename="srb2_circuit_graph.png"))
+    else:
+        await ctx.send(con.markup("Required parameters not given"))
 
 # help command received
 @bot.command(aliases=["h"])
@@ -89,6 +119,7 @@ async def help(ctx):
     embed.add_field(name="leaderboard (alias: scoreboard)", value="Returns the player leaderboard", inline=False)
     embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
+    embed.add_field(name="graph", value=f'Usage: {bot.command_prefix}graph "<player>" "<map name>" "[limit(from 1 to 50, default 20)]" "[skin]"')
     
     # get the command sender
     member = ctx.message.author
