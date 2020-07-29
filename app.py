@@ -80,13 +80,13 @@ async def bestskins(ctx):
 
 # graph command received
 @bot.command()
-async def graph(ctx, player=None, map=None, score_limit=20, skin=None):
+async def graph(ctx, player=None, map=None, skin=None):
     if player and map:
         # get the PIL image of the graph
-        graph_figure = con.graph_builder(player=player, map=map, limit=score_limit, skin=skin)
+        graph_figure = con.graph_builder(player=player, map=map, limit=50, skin=skin)
 
         if graph_figure == 50:
-            await ctx.send(con.markup("Zero results with datetime not null found"))
+            await ctx.send(con.markup("Zero results with datetime not null or above 6 minutes found"))
         
         # setup the buffer
         output_buffer = BytesIO()
@@ -119,7 +119,7 @@ async def help(ctx):
     embed.add_field(name="leaderboard (alias: scoreboard)", value="Returns the player leaderboard", inline=False)
     embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
-    embed.add_field(name="graph", value=f'Usage: {bot.command_prefix}graph "<player>" "<map name>" "[limit(from 1 to 50, default 20)]" "[skin]"')
+    embed.add_field(name="graph", value=f'Usage: {bot.command_prefix}graph "<player>" "<map name>" "[skin]"')
     
     # get the command sender
     member = ctx.message.author

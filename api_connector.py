@@ -19,7 +19,36 @@ def filter_dict_list(dict_list, allowed_keys):
         res.append(temp)
     
     return res
-        
+
+def tics_to_string(time):
+    minutes = round(time/(60*35))
+    seconds = round(time/35%60)
+    centiseconds = round((time%35) * (100/35))
+    return f"{minutes}:"+f"{seconds}".zfill(2)+f".{centiseconds}".zfill(2)
+
+def list_grouper(array):
+    array.sort()
+
+    diff = [array[i+1]-array[i] for i in range(len(array)-1)]
+    avg = sum(diff) / len(diff)
+
+    m = [[array[0]]]
+
+    for x in array[1:]:
+        if x - m[-1][-1] < avg:
+            m[-1].append(x)
+        else:
+            m.append([x])
+            
+    return m
+
+def group_simplifier(group):
+    res = []
+    for i in group:
+        res.append(i[round(len(i)/2)])
+    return res
+
+
 # leaderboard api retriever
 def get_leaderboard():
     # request the json for the leaderboard
@@ -104,17 +133,17 @@ def get_best_skins():
 def graph_builder(player, map, skin, limit):
     NO_RESULTS_FOUND = 50
     
-    limit = min([limit, 50])
     search_result = get_search_result(player=player, map=map, skin=skin, limit=limit, all_scores=True, datetime_order=True)
     
     for i in search_result:
-        if not i["datetime"]:
+        # if the datetime is null or the time is more than 6 minutes
+        if (not i["datetime"]) or i['time'] >= 12600:
             search_result.remove(i)
     
     if len(search_result) == 0:
         return NO_RESULTS_FOUND
     
-    title = f"Player: {search_result[0]['username']}, Map: {search_result[0]['mapname']}, Limit: {limit}"
+    title = f"Player: {search_result[0]['username']}, Map: {search_result[0]['mapname']}"
     if skin:
        title += f", Skin: {search_result[0]['skin']}"
     
@@ -123,17 +152,19 @@ def graph_builder(player, map, skin, limit):
     plt.plot_date(x=[i["datetime"] for i in search_result], y=[i["time"] for i in search_result], linestyle='-')
     
     plt.title(title)
-    plt.ylabel("Time Score")
-    plt.xlabel("Timestamp")
+    plt.xlabel("Over Time")
     plt.grid(True)
     
-    res_len = len(search_result)
     
     xlocs, xlabels = plt.xticks()
 
     plt.xticks(xlocs, labels=["" for i in search_result])
     
-    plt.yticks([i['time'] for i in search_result], labels=[i['time_string'] for i in search_result])
+    
+    ylocs = group_simplifier(list_grouper([i['time'] for i in search_result]))
+    
+    plt.yticks(ylocs, labels=[tics_to_string(i) for i in ylocs])
+    
     
     fig.canvas.draw()
     
