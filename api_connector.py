@@ -21,9 +21,9 @@ def filter_dict_list(dict_list, allowed_keys):
     return res
 
 def tics_to_string(time):
-    minutes = round(time/(60*35))
-    seconds = round(time/35%60)
-    centiseconds = round((time%35) * (100/35))
+    minutes = time//(60*35)
+    seconds = time//35%60
+    centiseconds = (time%35) * (100//35)
     return f"{minutes}:"+f"{seconds}".zfill(2)+f".{centiseconds}".zfill(2)
 
 def list_grouper(array):
