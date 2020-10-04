@@ -88,6 +88,17 @@ def get_status_message():
     # return the message
     return markup(res)
 
+# return a list of the currently active mods in the server
+def get_mods():
+    status, _ = get_server_info()
+    res = ""
+    assets = ["srb2.pk3", "zones.pk3", "player.dta", "patch.pk3"]
+    for f in status['filesneeded']:
+        if f['name'] not in assets:
+            res += f"- {f['name']}\n"
+    return res
+
+
 # search api retriever
 def get_search_result(map=None, skin=None, player=None, limit=3, all_scores=False, datetime_order=False):    
     # search api url builder

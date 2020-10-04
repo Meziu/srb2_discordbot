@@ -102,6 +102,10 @@ async def graph(ctx, player=None, map=None, skin=None):
     else:
         await ctx.send(con.markup("Required parameters not given"))
 
+@bot.command()
+async def mods(ctx):
+    await ctx.send(con.get_mods())
+
 # help command received
 @bot.command(aliases=["h"])
 async def help(ctx):
@@ -120,6 +124,7 @@ async def help(ctx):
     embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
     embed.add_field(name="graph", value=f'Usage: {bot.command_prefix}graph "<player>" "<map name>" "[skin]"')
+    embed.add_field(name="mods", value="Returns the active mods on the server")
     
     # get the command sender
     member = ctx.message.author
