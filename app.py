@@ -104,7 +104,7 @@ async def graph(ctx, player=None, map=None, skin=None):
 
 @bot.command()
 async def mods(ctx):
-    await ctx.send(con.get_mods())
+    await ctx.send(con.markup(con.get_mods()))
 
 # help command received
 @bot.command(aliases=["h"])
