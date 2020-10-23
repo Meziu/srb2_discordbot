@@ -105,12 +105,12 @@ def get_mods():
 
 
 # search api retriever
-def get_search_result(map=None, skin=None, player=None, limit=3, all_scores=False, datetime_order=False):    
+def get_search_result(map=None, skin=None, player=None, limit=3, all_scores=False, datetime_order=False, all_skins=False):    
     # search api url builder
     search_url = api_url + f"search?limit={limit}"
     
     if map:
-        search_url += f"&mapname={map}"
+        search_url += f'&mapname="{map}"'
     if skin:
         search_url += f"&skin={skin}"
     if player:
@@ -119,6 +119,8 @@ def get_search_result(map=None, skin=None, player=None, limit=3, all_scores=Fals
         search_url += "&all_scores=on"
     if datetime_order:
         search_url += "&order=datetime"
+    if all_skins:
+        search_url += "&all_skins=on"
     
     # get the search results
     search_result = r.get(search_url, verify=False).json()

@@ -3,14 +3,13 @@ from discord.ext import commands, tasks
 import api_connector as con
 from credentials import TOKEN
 from itertools import cycle
-from datetime import datetime
 from io import BytesIO
 
 # initialize a Client instance
 bot = commands.Bot(command_prefix="!", help_command=None)
 
 # setup the various status to loop through
-activities = cycle(["srb2circuit.eu", "_current_map_", "_modded_friday_", "_current_online_players_"])
+activities = cycle(["srb2circuit.eu", "_current_map_", "_current_online_players_"])
 
 # when the bot starts running
 @bot.event
@@ -39,14 +38,7 @@ def activities_picker():
     elif item == "_current_online_players_":
         # get the number of players
         players = con.get_server_info()[0]['number_of_players']
-        
         game_name = f"with {players} racers"
-    elif item == "_modded_friday_":
-        # if today it's friday
-        if datetime.today().weekday() == 4:
-            game_name = "with modded skins"
-        else:
-            game_name = activities_picker()
     else:
         game_name = item
     
@@ -65,13 +57,16 @@ async def status(ctx):
 
 # search command received
 @bot.command()
-async def search(ctx, map=None, skin=None, player=None):
+async def search(ctx, map=None, all_skins=None, skin=None, player=None):
     # if no map was specified
     if not map:
         # give error message
         await ctx.send(con.markup("No map was found. Retry by specifying a map."))
     else:
-        await ctx.send(con.search_result_to_message(con.get_search_result(map, skin, player)))
+        if all_skins == "all_skins_on":
+            await ctx.send(con.search_result_to_message(con.get_search_result(map, skin, player, all_skins=True)))
+        else:
+            await ctx.send(con.search_result_to_message(con.get_search_result(map, skin, player, all_skins=False)))
 
 # bestskins command received
 @bot.command()
@@ -121,7 +116,7 @@ async def help(ctx):
     embed.add_field(name="help (alias: h)", value="Returns this message")
     embed.add_field(name="status (alias: server, serverstatus, info)", value="Returns the server status", inline=False)
     embed.add_field(name="leaderboard (alias: scoreboard)", value="Returns the player leaderboard", inline=False)
-    embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search "<map name>" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
+    embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search "<map name>" "[modded_skins("all_skins_on" if wanted)]" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
     embed.add_field(name="graph", value=f'Usage: {bot.command_prefix}graph "<player>" "<map name>" "[skin]"')
     embed.add_field(name="mods", value="Returns the active mods on the server")
