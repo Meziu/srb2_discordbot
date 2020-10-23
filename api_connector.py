@@ -57,9 +57,14 @@ def get_leaderboard():
     # this way the leaderboard stops at the very last score and not in the middle of one
     # the maximum sting length is 2000 max chars(of the discord message) - 6 chars(for the markup signs) - the modulus of the current result over the max chars for each line
     str_length = 2000 - 6 - ((2000 - 6) % 31)
+
+    table = []
+
+    for player in leaderboard:
+        table.append((player['username'], player['total']))
     
     # create the table and return it
-    return markup(tabulate(leaderboard.items(), headers=["Player", "Points"])[:str_length])
+    return markup(tabulate(table, headers=["Player", "Points"])[:str_length])
 
 def get_server_info():
     # request the json for the server status
