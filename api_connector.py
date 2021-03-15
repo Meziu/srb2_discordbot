@@ -2,6 +2,8 @@ import requests as r
 from tabulate import tabulate
 import matplotlib.pyplot as plt
 from PIL import Image
+import calendar
+from datetime import date
 
 # base api url
 api_url = "https://srb2circuit.eu/highscores/api/"
@@ -49,10 +51,23 @@ def group_simplifier(group):
     return res
 
 
+def date_converter(year, month, day):
+    return "{:02}-{:02}-{:02}".format(year, month, day)
+
 # leaderboard api retriever
-def get_leaderboard():
+def get_leaderboard(monthly=False):
+    url = api_url+"leaderboard?"
+    if monthly:
+        now = date.today()
+        start_date = (now.year, now.month)
+        
+        last_day = calendar.monthrange(start_date[0], start_date[1])[1]
+        
+        url+="start_date="+date_converter(start_date[0], start_date[1], 1)
+        url+="&end_date="+date_converter(start_date[0], start_date[1], last_day)
+    
     # request the json for the leaderboard
-    leaderboard = r.get(api_url+"leaderboard", verify=False).json()
+    leaderboard = r.get(url, verify=False).json()
     
     # this way the leaderboard stops at the very last score and not in the middle of one
     # the maximum sting length is 2000 max chars(of the discord message) - 6 chars(for the markup signs) - the modulus of the current result over the max chars for each line
