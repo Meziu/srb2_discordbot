@@ -29,9 +29,12 @@ def tics_to_string(time):
     return f"{minutes}:"+f"{seconds}".zfill(2)+f".{centiseconds}".zfill(2)
 
 def list_grouper(array):
+    if len(array) == 1:
+        return [array]
     array.sort()
 
     diff = [array[i+1]-array[i] for i in range(len(array)-1)]
+    
     avg = sum(diff) / len(diff)
 
     m = [[array[0]]]
@@ -120,22 +123,24 @@ def get_mods():
 
 
 # search api retriever
-def get_search_result(map=None, skin=None, player=None, limit=3, all_scores=False, datetime_order=False, all_skins=False):    
+def get_search_result(map=None, limit=3, parameters=()):    
     # search api url builder
     search_url = api_url + f"search?limit={limit}"
     
     if map:
         search_url += f'&mapname="{map}"'
-    if skin:
-        search_url += f"&skin={skin}"
-    if player:
-        search_url += f"&username={player}"
-    if all_scores:
-        search_url += "&all_scores=on"
-    if datetime_order:
-        search_url += "&order=datetime"
-    if all_skins:
-        search_url += "&all_skins=on"
+    
+    for p in parameters:
+        if p == "allscores_on":
+            search_url += "&all_scores=on"
+        elif p == "allskins_on":
+            search_url += "&all_skins=on"
+        elif p.startswith("user_"):
+            search_url += "&username="+p[5:]
+        elif p.startswith("skin_"):
+            search_url += "&skin={skin}"+p[5:]
+        elif p.startswith("order_"):
+            search_url += "&order="+p[6:]
     
     # get the search results
     search_result = r.get(search_url, verify=False).json()
@@ -163,10 +168,12 @@ def get_best_skins():
     
     return markup(tabulate(best_skins.items(), headers=["Skin", "Points"]))
 
-def graph_builder(player, map, skin, limit):
+def graph_builder(player, map, limit, params=()):
     NO_RESULTS_FOUND = 50
     
-    search_result = get_search_result(player=player, map=map, skin=skin, limit=limit, all_scores=True, datetime_order=True)
+    base_arguments = ["user_"+player, "allscores_on", "order_datetime"]
+    
+    search_result = get_search_result(map=map, limit=limit, parameters=base_arguments+list(params))
     
     for i in search_result:
         # if the datetime is null or the time is more than 6 minutes
@@ -177,8 +184,9 @@ def graph_builder(player, map, skin, limit):
         return NO_RESULTS_FOUND
     
     title = f"Player: {search_result[0]['username']}, Map: {search_result[0]['mapname']}"
-    if skin:
-       title += f", Skin: {search_result[0]['skin']}"
+    for p in params:
+        if p.startswith("skin_"):
+            title += f", Skin: {search_result[0]['skin']}"
     
     fig = plt.figure()
     

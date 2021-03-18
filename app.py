@@ -61,17 +61,14 @@ async def status(ctx):
 
 # search command received
 @bot.command()
-async def search(ctx, map=None, all_skins=None, skin=None, player=None):
+async def search(ctx, map=None, *args):
     # if no map was specified
     if not map:
         # give error message
-        await ctx.send(con.markup("No map was found. Retry by specifying a map."))
+        await ctx.send(con.markup("No map was specified. Retry by specifying a map."))
     else:
-        if all_skins == "all_skins_on":
-            await ctx.send(con.search_result_to_message(con.get_search_result(map, skin, player, all_skins=True)))
-        else:
-            await ctx.send(con.search_result_to_message(con.get_search_result(map, skin, player, all_skins=False)))
-
+        await ctx.send(con.search_result_to_message(con.get_search_result(map=map, parameters=args)))
+        
 # bestskins command received
 @bot.command()
 async def bestskins(ctx):
@@ -79,13 +76,13 @@ async def bestskins(ctx):
 
 # graph command received
 @bot.command()
-async def graph(ctx, player=None, map=None, skin=None):
+async def graph(ctx, player=None, map=None, *args):
     if player and map:
         # get the PIL image of the graph
-        graph_figure = con.graph_builder(player=player, map=map, limit=50, skin=skin)
+        graph_figure = con.graph_builder(player=player, map=map, limit=50, params=args)
 
         if graph_figure == 50:
-            await ctx.send(con.markup("Zero results with datetime not null or above 6 minutes found"))
+            await ctx.send(con.markup("Couldn't build graph. Try checking the parameters and how they are written"))
         
         # setup the buffer
         output_buffer = BytesIO()
@@ -119,11 +116,19 @@ async def help(ctx):
     # set the commands with descriptions
     embed.add_field(name="help (alias: h)", value="Returns this message")
     embed.add_field(name="status (alias: server, serverstatus, info)", value="Returns the server status", inline=False)
-    embed.add_field(name="leaderboard (alias: scoreboard)", value=f'Returns the player leaderboard, monthly or of all time\nUsage: {bot.command_prefix}leaderboard "[m]"', inline=False)
-    embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search "<map name>" "[modded_skins("all_skins_on" if wanted)]" "[skin name]" "[username]"\n''All parameters can be submitted with no "" if they '"don't require spaces"), inline=False)
+    embed.add_field(name="leaderboard (alias: scoreboard)", value=f'Returns the player leaderboard, monthly or of all time\nUsage: {bot.command_prefix}leaderboard [m]', inline=False)
+    embed.add_field(name="search", value=(f'Usage: {bot.command_prefix}search <map name> [PARAMETERS]\n'), inline=False)
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
-    embed.add_field(name="graph", value=f'Usage: {bot.command_prefix}graph "<player>" "<map name>" "[skin]"')
+    embed.add_field(name="graph", value=f'Usage: {bot.command_prefix}graph <player> <map name> [PARAMETERS]')
     embed.add_field(name="mods", value="Returns the active mods on the server")
+    embed.add_field(name="Parameters List", value="When [PARAMETERS] is usable in a command, you are able to put any of these optional parameters in whatever order you like, by using them like: *label_value.*\n"\
+                                                  'All parameters can be submitted with no "" if they '"don't require spaces.\n\n"\
+                                                  "*allscores_*  : to get multiple scores from same circumstances, must use value 'on'\n"\
+                                                  "*allskins_*   : to get scores from modded skins, must use value 'on'\n"\
+                                                  "*user_*       : to get scores from a specific player\n"\
+                                                  "*skin_*       : to get scores from a specific skin\n"\
+                                                  "*order_*      : to get scores with a specific order, default 'time'"\
+                                                  , inline=False)
     
     # get the command sender
     member = ctx.message.author
