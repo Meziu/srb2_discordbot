@@ -125,7 +125,7 @@ async def help(ctx):
                                                   'All parameters can be submitted with no "" if they '"don't require spaces.\n\n"\
                                                   "*-all_scores*  : to get multiple scores from same circumstances, must use value 'on'\n"\
                                                   "*-all_skins*   : to get scores from modded skins, must use value 'on'\n"\
-                                                  "*-user*       : to get scores from a specific player\n"\
+                                                  "*-username*       : to get scores from a specific player\n"\
                                                   "*-skin*       : to get scores from a specific skin\n"\
                                                   "*-order*      : to get scores with a specific order, default 'time'\n"\
                                                   "*-limit*      : to get a limited number of scores, max 50"
