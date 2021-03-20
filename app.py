@@ -9,7 +9,7 @@ from io import BytesIO
 bot = commands.Bot(command_prefix="!", help_command=None)
 
 # setup the various status to loop through
-activities = cycle(["srb2circuit.eu", "_current_map_", "_current_online_players_"])
+activities = cycle(["srb2circuit.eu", "_current_map_", "_current_online_players_", "not with Fang"])
 
 # when the bot starts running
 @bot.event
@@ -67,7 +67,7 @@ async def search(ctx, map=None, *args):
         # give error message
         await ctx.send(con.markup("No map was specified. Retry by specifying a map."))
     else:
-        await ctx.send(con.search_result_to_message(con.get_search_result(map=map, parameters=args)))
+        await ctx.send(con.search_result_to_message(con.get_search_result(parameters=["-mapname", map ,"-limit", "3"]+list(args))))
         
 # bestskins command received
 @bot.command()
@@ -121,13 +121,14 @@ async def help(ctx):
     embed.add_field(name="bestskins", value="Returns the skin leaderboard", inline=False)
     embed.add_field(name="graph", value=f'Usage: {bot.command_prefix}graph <player> <map name> [PARAMETERS]')
     embed.add_field(name="mods", value="Returns the active mods on the server")
-    embed.add_field(name="Parameters List", value="When [PARAMETERS] is usable in a command, you are able to put any of these optional parameters in whatever order you like, by using them like: *label_value.*\n"\
+    embed.add_field(name="Parameters List", value="When [PARAMETERS] is usable in a command, you are able to put any of these optional parameters in whatever order you like, by using them like: *-label value*.\n"\
                                                   'All parameters can be submitted with no "" if they '"don't require spaces.\n\n"\
-                                                  "*allscores_*  : to get multiple scores from same circumstances, must use value 'on'\n"\
-                                                  "*allskins_*   : to get scores from modded skins, must use value 'on'\n"\
-                                                  "*user_*       : to get scores from a specific player\n"\
-                                                  "*skin_*       : to get scores from a specific skin\n"\
-                                                  "*order_*      : to get scores with a specific order, default 'time'"\
+                                                  "*-all_scores*  : to get multiple scores from same circumstances, must use value 'on'\n"\
+                                                  "*-all_skins*   : to get scores from modded skins, must use value 'on'\n"\
+                                                  "*-user*       : to get scores from a specific player\n"\
+                                                  "*-skin*       : to get scores from a specific skin\n"\
+                                                  "*-order*      : to get scores with a specific order, default 'time'\n"\
+                                                  "*-limit*      : to get a limited number of scores, max 50"
                                                   , inline=False)
     
     # get the command sender

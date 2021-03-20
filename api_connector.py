@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import calendar
 from datetime import date
+from urllib import parse as urlparser
 
 # base api url
 api_url = "https://srb2circuit.eu/highscores/api/"
@@ -123,24 +124,45 @@ def get_mods():
 
 
 # search api retriever
-def get_search_result(map=None, limit=3, parameters=()):    
+def get_search_result(parameters=()):    
     # search api url builder
-    search_url = api_url + f"search?limit={limit}"
+    search_url = api_url + f"search?"
     
-    if map:
-        search_url += f'&mapname="{map}"'
-    
-    for p in parameters:
-        if p == "allscores_on":
-            search_url += "&all_scores=on"
-        elif p == "allskins_on":
-            search_url += "&all_skins=on"
-        elif p.startswith("user_"):
-            search_url += "&username="+p[5:]
-        elif p.startswith("skin_"):
-            search_url += "&skin={skin}"+p[5:]
-        elif p.startswith("order_"):
-            search_url += "&order="+p[6:]
+    url_params = {}
+        
+    for i in range(len(parameters)):
+        key = parameters[i]
+        if not key.startswith("-"):
+            continue
+        
+        if i+1 >= len(parameters):
+            break
+        value = parameters[i+1]
+        if value.startswith("-"):
+            continue
+        
+        if key == "-limit":
+            try:
+                if int(value) >= 50:
+                    url_params[key[1:]] = "50"
+                else:
+                    url_params[key[1:]] = value
+            except:
+                url_params[key[1:]] = "3"
+        elif key == "-mapname":
+            url_params[key[1:]] = value
+        elif key == "-skin":
+            url_params[key[1:]] = value
+        elif key == "-all_skins":
+            url_params[key[1:]] = value
+        elif key == "-username":
+            url_params[key[1:]] = value
+        elif key == "-order":
+            url_params[key[1:]] = value
+        elif key == "-all_scores":
+            url_params[key[1:]] = value
+            
+    search_url += urlparser.urlencode(url_params, quote_via=urlparser.quote)
     
     # get the search results
     search_result = r.get(search_url, verify=False).json()
@@ -171,9 +193,9 @@ def get_best_skins():
 def graph_builder(player, map, limit, params=()):
     NO_RESULTS_FOUND = 50
     
-    base_arguments = ["user_"+player, "allscores_on", "order_datetime"]
+    base_arguments = ["-mapname", map, "-limit", str(limit), "-username", player, "-all_scores", "on", "-order", "datetime"]
     
-    search_result = get_search_result(map=map, limit=limit, parameters=base_arguments+list(params))
+    search_result = get_search_result(parameters=list(params)+base_arguments)
     
     for i in search_result:
         # if the datetime is null or the time is more than 6 minutes
