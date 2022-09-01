@@ -58,7 +58,7 @@ def group_simplifier(group):
 def date_converter(year, month, day):
     return "{:02}-{:02}-{:02}".format(year, month, day)
 
-# leaderboard api retriever
+# Leaderboard API retriever
 def get_leaderboard(monthly=False):
     url = api_url+"leaderboard?"
     if monthly:
@@ -70,11 +70,11 @@ def get_leaderboard(monthly=False):
         url+="start_date="+date_converter(start_date[0], start_date[1], 1)
         url+="&end_date="+date_converter(start_date[0], start_date[1], last_day)
     
-    # request the json for the leaderboard
+    # Request the json for the leaderboard
     leaderboard = r.get(url, verify=False).json()
     
-    # this way the leaderboard stops at the very last score and not in the middle of one
-    # the maximum sting length is 2000 max chars(of the discord message) - 6 chars(for the markup signs) - the modulus of the current result over the max chars for each line
+    # This way the leaderboard stops at the very last score and not in the middle of one
+    # The maximum sting length is 2000 max chars(of the discord message) - 6 chars(for the markup signs) - the modulus of the current result over the max chars for each line
     str_length = 2000 - 6 - ((2000 - 6) % 31)
 
     table = []
@@ -82,26 +82,26 @@ def get_leaderboard(monthly=False):
     for player in leaderboard:
         table.append((player['username'], player['total']))
     
-    # create the table and return it
+    # Create the table and return it
     return markup(tabulate(table, headers=["Player", "Points"])[:str_length])
 
 def get_server_info():
-    # request the json for the server status
+    # Request the json for the server status
     status = r.get(api_url+"server_info", verify=False).json()
     
-    # filter the player fdate to get only the wanted columns
+    # Filter the player fdate to get only the wanted columns
     players_list = filter_dict_list(status['players'], ['name', 'skin'])
     
     return status, players_list
 
-# status api converter in text
+# Status api converter in text
 def get_status_message():
     status, players_list = get_server_info()
     
-    # create an ascii table with the players data
+    # Create an ascii table with the players data
     players_str = tabulate(players_list, headers=["Username", "Skin"])
     
-    # create the message
+    # Create the message
     res = (f"Server: {status['servername']}\n\n" 
            f"Number of Players: {status['number_of_players']}/{status['max_players']}\n"
            f"Map: {status['map']['name']} (id = {status['map']['id']})\n"
@@ -109,60 +109,28 @@ def get_status_message():
            f"Players: \n{players_str}"
     )
 
-    # return the message
+    # Return the message
     return markup(res)
 
-# return a list of the currently active mods in the server
+# Return a list of the currently active mods in the server
 def get_mods():
     status, _ = get_server_info()
+    print(status)
     res = ""
     assets = ["srb2.pk3", "zones.pk3", "player.dta", "patch.pk3"]
     for f in status['filesneeded']:
-        if f['name'] not in assets:
-            res += f"- {f['name']}\n"
+        if f['filename'] not in assets:
+            res += f"- {f['filename']}\n"
     return res
 
-
-# search api retriever
-def get_search_result(parameters=()):    
+# Search api retriever
+def get_search_result(parameters: dict):    
     # search api url builder
     search_url = api_url + f"search?"
-    
-    url_params = {}
-        
-    for i in range(len(parameters)):
-        key = parameters[i]
-        if not key.startswith("-"):
-            continue
-        
-        if i+1 >= len(parameters):
-            break
-        value = parameters[i+1]
-        if value.startswith("-"):
-            continue
-        
-        if key == "-limit":
-            try:
-                if int(value) >= 50:
-                    url_params[key[1:]] = "50"
-                else:
-                    url_params[key[1:]] = value
-            except:
-                url_params[key[1:]] = "3"
-        elif key == "-mapname":
-            url_params[key[1:]] = value
-        elif key == "-skin":
-            url_params[key[1:]] = value
-        elif key == "-all_skins":
-            url_params[key[1:]] = value
-        elif key == "-username":
-            url_params[key[1:]] = value
-        elif key == "-order":
-            url_params[key[1:]] = value
-        elif key == "-all_scores":
-            url_params[key[1:]] = value
             
-    search_url += urlparser.urlencode(url_params, quote_via=urlparser.quote)
+    search_url += urlparser.urlencode(parameters, quote_via=urlparser.quote)
+
+    print(search_url)
     
     # get the search results
     search_result = r.get(search_url, verify=False).json()
@@ -190,12 +158,12 @@ def get_best_skins():
     
     return markup(tabulate(best_skins.items(), headers=["Skin", "Points"]))
 
-def graph_builder(player, map, limit, params=()):
+def graph_builder(parameters: dict):
     NO_RESULTS_FOUND = 50
+
+    print(parameters)
     
-    base_arguments = ["-mapname", map, "-limit", str(limit), "-username", player, "-all_scores", "on", "-order", "datetime"]
-    
-    search_result = get_search_result(parameters=list(params)+base_arguments)
+    search_result = get_search_result(parameters=parameters)
     
     for i in search_result:
         # if the datetime is null or the time is more than 6 minutes
@@ -206,9 +174,10 @@ def graph_builder(player, map, limit, params=()):
         return NO_RESULTS_FOUND
     
     title = f"Player: {search_result[0]['username']}, Map: {search_result[0]['mapname']}"
-    for p in params:
-        if p.startswith("skin_"):
-            title += f", Skin: {search_result[0]['skin']}"
+
+    # If the key exists, then the user specified the character to filter
+    if parameters.get("skin"):
+        title += f", Skin: {search_result[0]['skin']}"
     
     fig = plt.figure()
     
