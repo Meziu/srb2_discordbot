@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import calendar
 from datetime import date
+from dateutil.relativedelta import relativedelta
 from urllib import parse as urlparser
 
 # base api url
@@ -62,13 +63,13 @@ def date_converter(year, month, day):
 def get_leaderboard(monthly=False):
     url = api_url+"leaderboard?"
     if monthly:
-        now = date.today()
-        start_date = (now.year, now.month)
+        start_date = date.today()
+        end_date = start_date + relativedelta(months=1)
         
-        last_day = calendar.monthrange(start_date[0], start_date[1])[1]
-        
-        url+="start_date="+date_converter(start_date[0], start_date[1], 1)
-        url+="&end_date="+date_converter(start_date[0], start_date[1], last_day)
+        url+="start_date="+date_converter(start_date.year, start_date.month, 1)
+        url+="&end_date="+date_converter(start_date.year, end_date.month, 1)
+
+        print(url)
     
     # Request the json for the leaderboard
     leaderboard = r.get(url, verify=False).json()
